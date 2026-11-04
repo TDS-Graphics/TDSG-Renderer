@@ -1,0 +1,21 @@
+#pragma once
+#include "light/light.h"
+
+class AreaLight : public Light {
+public:
+    AreaLight(int primitiveID, const Primitive& primitive, Spectrum radiance);
+
+    LightType type() const override { return LightType::Area; }
+    bool isDelta() const override { return false; }
+    LightSample sample(Vec3f from, Vec2 u) const override;
+    Spectrum evaluateEmission(const Hit& hit, Vec3f wo) const override;
+    float pdf(Vec3f from, const Hit& light_hit) const override;
+    Spectrum power() const override;
+    int getPrimitiveID() const override { return primitiveID; }
+
+private:
+    int primitiveID;
+    // A value snapshot keeps this light independent of Scene storage and lifetime.
+    Primitive primitive;
+    Spectrum radiance;
+};

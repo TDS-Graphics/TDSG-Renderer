@@ -1,0 +1,14 @@
+# Blender 5.2.3 LTS MTL File: 'untitled.blend'
+# www.blender.org
+
+newmtl tripo_mat_e0b03353
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd 1/tripo_convert_e0b03353-537e-46a4-89a2-48535191ff80.fbm/tripo_rgb_15a6f92f-9f12-4643-9b94-6059e4f802ce.jpg
+map_Ns 1/tripo_convert_e0b03353-537e-46a4-89a2-48535191ff80.fbm/letter_d_3d_model_roughness.JPEG
+map_refl 1/tripo_convert_e0b03353-537e-46a4-89a2-48535191ff80.fbm/letter_d_3d_model_metallic.JPEG
+map_Bump -bm 1.000000 1/tripo_convert_e0b03353-537e-46a4-89a2-48535191ff80.fbm/tripo_normal_8cba53b3-49aa-4a0e-8900-08f6a6067772.jpg
