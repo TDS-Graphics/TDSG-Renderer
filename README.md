@@ -1,6 +1,8 @@
 # TDSG Renderer
 TDSG Renderer，一个基于物理的渲染器。面向 TDS 游戏开发社团图形组的教学。
 
+同时将作为成都信息工程大学《计算机图形学》官方课程的实验。
+
 ## Features
 
 - [ ] Integrator
