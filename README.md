@@ -60,4 +60,4 @@ macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 </p>
 
 
-`cornell` 和 `veach` 两个基础场景都是程序化产生的，构建器位于 `src/scene/make_scene.cpp`，可能日后考虑加入 JSON / xml 解析外部场景描述文件，也
+`cornell` 和 `veach` 两个基础场景都是程序化产生的（硬编码），构建器位于 `src/scene/make_scene.cpp`，可能日后考虑加入 JSON / xml 解析外部场景描述文件。
