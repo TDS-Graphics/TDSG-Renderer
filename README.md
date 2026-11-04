@@ -20,9 +20,11 @@ TDSG Renderer，一个基于物理的渲染器。面向 TDS 游戏开发社团�
     - [x] spotlight
     - [x] area light
     - [ ] 环境光（infinity area light）
+- [x] BVH 加速结构
 - [ ] 纹理
 - [ ] denoiser
 - [x] PCG 随机数生成器
+- [x] 多线程
 - [ ] 解析外部场景 
 - [ ] 参与介质（体渲染）
 
