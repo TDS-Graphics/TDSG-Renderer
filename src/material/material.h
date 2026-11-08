@@ -3,6 +3,8 @@
 
 enum class MaterialType { Diffuse, Metal, Mirror, Glass };
 
+float dielectricFresnel(float cos_i, float cos_t, float eta);
+
 struct BSDFSample {
     Vec3f direction;
     Spectrum weight; // f * abs(dot(n,wi)) / pdf

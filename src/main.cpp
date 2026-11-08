@@ -55,13 +55,14 @@ int main(int argc, char** argv) {
         auto getValue = [&]() { return argv[++i]; };
 
         if (arg == "--help") {
-            std::cout << "TDSG Renderer\n"
+            std::cout << "TDSG Renderer v0.0.2\n"
                         << "Copyright (c) 2026 by BrownieCake- @ TDS, under MIT License.\n"
                         << "Usage:\n"
-                        << "  --scene cornell|veach     Default: cornell\n"
+                        << "  --scene whitted|cornell|cornell_glass|roughness_test|area_light|lucy|veach\n"
+                        << "                            Default: cornell\n"
                         << "  --spp N --depth N         Default: 4, 8\n"
                         << "  --threads N --seed N      Default: hardware threads, 1\n"
-                        << "  --integrator path|whitted|normal  Default: normal\n"
+                        << "  --integrator path|nee|mis|whitted|normal  Default: normal\n"
                         << "  --output image.ppm|.pfm   Default: render.ppm\n"
                         << "  --exposure EV             PPM exposure in stops\n"
                         << "  --obj model.obj           Add an OBJ, with MTL constants\n"

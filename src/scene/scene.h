@@ -16,6 +16,8 @@ public:
     const Material& getMaterial(int id) const { return materials[id]; }
     const Primitive& getPrimitive(int id) const { return primitives[id]; }
     const Lights& getLights() const { return lights; }
+    Spectrum background() const { return background_radiance; }
+    void setBackground(Spectrum radiance) { background_radiance = radiance; }
 
     size_t primitiveCount() const { return primitives.size(); }
 
@@ -24,4 +26,5 @@ private:
     std::vector<Primitive> primitives;
     Lights lights;
     BVH bvh;
+    Spectrum background_radiance{0};
 };

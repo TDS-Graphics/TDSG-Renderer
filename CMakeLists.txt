@@ -20,6 +20,7 @@ add_library(tdsg
 target_compile_features(tdsg PUBLIC cxx_std_17)
 target_include_directories(tdsg PUBLIC src)
 target_include_directories(tdsg SYSTEM PRIVATE third_party)
+target_compile_definitions(tdsg PRIVATE TDSG_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets")
 target_link_libraries(tdsg PUBLIC Threads::Threads)
 if(MSVC)
     target_compile_options(tdsg PRIVATE /W4 /permissive- /utf-8)

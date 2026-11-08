@@ -17,6 +17,30 @@ private:
     int max_depth_;
 };
 
+class PathNEEIntegrator : public Integrator {
+public:
+    PathNEEIntegrator(int max_depth = 8) : max_depth_(max_depth) {}
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const override;
+private:
+    int max_depth_;
+};
+
+class PathMISIntegrator : public Integrator {
+public:
+    PathMISIntegrator(int max_depth = 8) : max_depth_(max_depth) {}
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const override;
+private:
+    int max_depth_;
+};
+
+class PhotonIntegrator : public Integrator {
+
+};
+
+class BDPTIntegrator : public Integrator {
+
+};
+
 class WhittedIntegrator : public Integrator {
 public:
     WhittedIntegrator(int max_depth = 8) : max_depth_(max_depth) {}

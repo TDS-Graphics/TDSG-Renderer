@@ -11,6 +11,11 @@ struct SceneSetup {
 };
 
 SceneSetup MakeCornell();
+SceneSetup MakeCornellGlass();
+SceneSetup MakeRoughness();
+SceneSetup MakeAreaLight();
+SceneSetup MakeLucy();
+SceneSetup MakeWhitted();
 SceneSetup MakeVeach();
 std::optional<SceneSetup> makeScene(std::string_view name);
 

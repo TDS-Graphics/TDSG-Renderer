@@ -15,6 +15,7 @@ public:
     LightSample sampleLight(Vec3f from, Sampler& sampler) const;
     float lightPdf(Vec3f from, const Hit& light_hit) const;
     size_t size() const { return lights.size(); }
+    const Light& getLight(size_t index) const { return *lights[index].light; }
 
 private:
     struct Entry {

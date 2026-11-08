@@ -1,0 +1,34 @@
+Stanford Lucy
+============
+Original model: Stanford University Computer Graphics Laboratory
+Repository: https://graphics.stanford.edu/data/3Dscanrep/#lucy
+Downloaded mesh: three.js r180, examples/models/ply/binary/Lucy100k.ply
+URL: https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/models/ply/binary/Lucy100k.ply
+Retrieved: 2026-11-08
+Source PLY SHA-256: 837f769e67155dc4a6e9a90683a61d6f6b4571a2a97d79586831011f450e66e2
+
+This reduced mesh has 50002 vertices and 100000 triangles.
+Converted to OBJ without changing topology. Positions were uniformly scaled
+by 1/1596.901123046875 and translated to unit height, Y-up, base Y=0,
+center X=Z=0. Area-weighted vertex normals were generated from outward-wound
+triangles. Every edge has exactly two incident faces.
+
+This third-party model is subject to Stanford's terms, separately from the
+renderer source code's MIT license. Credit the Stanford Computer Graphics
+Laboratory when using it. Stanford's repository states:
+
+"Please be sure to acknowledge the source of the data and models you take
+from this repository. In each of the listings below, we have cited the
+source of the range data and reconstructed models. You are welcome to use
+the data and models for research purposes. You are also welcome to mirror
+or redistribute them for free. Finally, you may publish images made using
+these models, or the images on this web site, in a scholarly article or
+book - as long as credit is given to the Stanford Computer Graphics
+Laboratory. However, such models or images are not to be used for commercial
+purposes, nor should they appear in a product for sale (with the exception
+of scholarly journals or books), without our permission."
+
+Stanford also asks that culturally or religiously significant models,
+including Lucy, be used in good taste: do not animate or morph them, apply
+Boolean operators to them, or simulate breaking, exploding, melting, etc.
+Full current terms: https://graphics.stanford.edu/data/3Dscanrep/
