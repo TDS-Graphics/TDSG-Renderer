@@ -108,7 +108,7 @@ SceneSetup MakeRoughness() {
     }
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
-        Vec3f{2.8f, 1.25f, 8.5f}, Vec3f{0, 1, 0}, 20.0f, 1000, 440)};
+        Vec3f{2.1f, 1.25f, 9.5f}, Vec3f{0, 1, 0}, 20.0f, 1000, 440)};
 }
 
 SceneSetup MakeAreaLight() {

@@ -90,7 +90,7 @@ macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 
 - 粗糙度测试
 
-命令：`./tdsg_render --scene roughness_test --integrator mis --spp 16`
+命令：`./tdsg_render --scene roughness_test --integrator path --spp 512`
 <p align="center">
   <img src="assets/roughness.png" width="1000"/>
 </p>
