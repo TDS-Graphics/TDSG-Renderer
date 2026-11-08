@@ -75,7 +75,7 @@ macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 
 - Lucy
 
-命令：`./tdsg_render --scene lucy --integrator path --spp 400`
+命令：`./tdsg_render --scene lucy --integrator mis --spp 400`
 <p align="center">
   <img src="assets/lucy.png" width="512"/>
 </p>
