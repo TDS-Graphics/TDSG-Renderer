@@ -20,14 +20,14 @@ float dielectricFresnel(float cos_i, float cos_t, float eta) {
     return 0.5f * (rs * rs + rp * rp);
 }
 
-Spectrum Material::eval(Vec3f wo, Vec3f wi, Vec3f n) const {
+Spectrum Material::eval(Vec3f wo, Vec3f wi, Vec3f n, const ColorSample& color_sample) const {
     float no_v = dot(n, wo), no_l = dot(n, wi);
     if (no_v <= 0 || no_l <= 0) {
         return Spectrum(0);
     }
 
     if (type == MaterialType::Diffuse) {
-        return color / Pi;
+        return color_sample.evaluate(color) / Pi;
     }
 
     if (type != MaterialType::Metal) {
@@ -38,7 +38,7 @@ Spectrum Material::eval(Vec3f wo, Vec3f wi, Vec3f n) const {
     float alpha = std::max(0.001f, roughness * roughness);
     float d = ggxD(std::max(0.0f, dot(n, h)), alpha);
     float g = ggxG1(no_v, alpha) * ggxG1(no_l, alpha);
-    return schlick(color, dot(wo, h)) * (d * g / (4 * no_v * no_l));
+    return schlick(color_sample.evaluate(color), dot(wo, h)) * (d * g / (4 * no_v * no_l));
 }
 
 float Material::pdf(Vec3f wo, Vec3f wi, Vec3f n) const {
@@ -60,9 +60,10 @@ float Material::pdf(Vec3f wo, Vec3f wi, Vec3f n) const {
     return ggxD(no_h, std::max(0.001f, roughness * roughness)) * no_h / (4 * dot(wo, h));
 }
 
-BSDFSample Material::Sample(Vec3f wo, Vec3f n, bool front_face, Sampler& sampler) const {
+BSDFSample Material::Sample(Vec3f wo, Vec3f n, bool front_face, Sampler& sampler, const ColorSample& color_sample) const {
+    Spectrum reflectance = color_sample.evaluate(color);
     if (type == MaterialType::Mirror) {
-        return {reflect(wo, n), color, 1, 1, true};
+        return {reflect(wo, n), reflectance, 1, 1, true};
     }
 
     if (type == MaterialType::Glass) {
@@ -76,17 +77,17 @@ BSDFSample Material::Sample(Vec3f wo, Vec3f n, bool front_face, Sampler& sampler
         float cos_i = std::clamp(dot(wo, n), 0.0f, 1.0f);
         float sin2_t = eta * eta * (1 - cos_i * cos_i);
         if (sin2_t >= 1) {
-            return {reflect(wo, n), color, 1, 1, true};
+            return {reflect(wo, n), reflectance, 1, 1, true};
         }
 
         float cos_t = std::sqrt(1 - sin2_t);
         float f = dielectricFresnel(cos_i, cos_t, eta);
         if (sampler.next1D() < f) {
-            return {reflect(wo, n), color, f, 1, true};
+            return {reflect(wo, n), reflectance, f, 1, true};
         }
 
         Vec3f wi = -eta * wo + (eta * cos_i - cos_t) * n;
-        return {wi, color * (eta * eta), 1 - f, 1 / eta, true};
+        return {wi, reflectance * (eta * eta), 1 - f, 1 / eta, true};
     }
 
     Vec3f wi;
@@ -111,5 +112,5 @@ BSDFSample Material::Sample(Vec3f wo, Vec3f n, bool front_face, Sampler& sampler
         return {};
     }
 
-    return {wi, eval(wo, wi, n) * (dot(n, wi) / p), p};
+    return {wi, eval(wo, wi, n, color_sample) * (dot(n, wi) / p), p};
 }

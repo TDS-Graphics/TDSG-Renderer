@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <vector>
-#include "mathlib/math.h"
+#include "color/rgb.h"
 
 class Film {
 public:
@@ -10,12 +10,12 @@ public:
     int width() const { return image_width; }
     int height() const { return image_height; }
 
-    void addSample(int x, int y, Spectrum color);
-    Spectrum pixel(int x, int y) const;
+    void addSample(int x, int y, const SpectrumRGB& color);
+    SpectrumRGB pixel(int x, int y) const;
     void Save(const std::filesystem::path& path, float exposure = 0) const;
 
 private:
     int image_width, image_height;
-    std::vector<Spectrum> sums;
+    std::vector<SpectrumRGB> sums;
     std::vector<int> counts;
 };

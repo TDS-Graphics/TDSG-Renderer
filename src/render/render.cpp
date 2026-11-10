@@ -48,8 +48,9 @@ void Render(const Scene& scene, const Camera& camera, Film& film,
                         Vec2 p_film = Vec2{float(x), float(y)} + sampler.next2D();
                         Ray ray = camera.generateRay(p_film);
 
-                        Spectrum color = integrator.Li(ray, scene, sampler);
-                        film.addSample(x, y, color);
+                        ColorSample color_sample = ColorSample::sample(sampler);
+                        Spectrum radiance = integrator.Li(ray, scene, sampler, color_sample);
+                        film.addSample(x, y, color_sample.toRGB(radiance));
                     }
                 }
             }

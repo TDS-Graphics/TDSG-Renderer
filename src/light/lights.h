@@ -11,8 +11,8 @@ public:
     void addLight(std::shared_ptr<const Light> light);
     void Build(const Scene& scene);
 
-    Spectrum emission(const Hit& hit, Vec3f wo) const;
-    LightSample sampleLight(Vec3f from, Sampler& sampler) const;
+    Spectrum emission(const Hit& hit, Vec3f wo, const ColorSample& color_sample) const;
+    LightSample sampleLight(Vec3f from, Sampler& sampler, const ColorSample& color_sample) const;
     float lightPdf(Vec3f from, const Hit& light_hit) const;
     size_t size() const { return lights.size(); }
     const Light& getLight(size_t index) const { return *lights[index].light; }

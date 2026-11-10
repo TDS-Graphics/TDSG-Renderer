@@ -1,9 +1,11 @@
 #include "film/film.h"
+#include <cmath>
 #include <cstdint>
 #include <fstream>
 #include <stdexcept>
 
 unsigned char displayByte(float linear) {
+    linear = std::max(0.0f, linear);
     float mapped = linear / (1 + linear);
     float srgb;
     if (mapped <= 0.0031308f) {
@@ -15,18 +17,18 @@ unsigned char displayByte(float linear) {
     return static_cast<unsigned char>(255 * std::clamp(srgb, 0.0f, 1.0f) + 0.5f);
 }
 
-void Film::addSample(int x, int y, Spectrum color) {
+void Film::addSample(int x, int y, const SpectrumRGB& color) {
     size_t i = size_t(y) * image_width + x;
     sums[i] += color;
     ++counts[i];
 }
 
-Spectrum Film::pixel(int x, int y) const {
+SpectrumRGB Film::pixel(int x, int y) const {
     size_t i = size_t(y) * image_width + x;
     if (counts[i]) {
         return sums[i] / float(counts[i]);
     } else {
-        return Spectrum(0);
+        return SpectrumRGB(0);
     }
 }
 
@@ -53,8 +55,8 @@ void Film::Save(const std::filesystem::path& path, float exposure) const {
 
         for (int y = image_height - 1; y >= 0; --y) {
             for (int x = 0; x < image_width; ++x) {
-                Spectrum c = pixel(x, y);
-                float channels[] = {c.x, c.y, c.z};
+                SpectrumRGB c = pixel(x, y);
+                float channels[] = {c[0], c[1], c[2]};
                 file.write(reinterpret_cast<const char*>(channels), sizeof(channels));
             }
         }
@@ -64,8 +66,8 @@ void Film::Save(const std::filesystem::path& path, float exposure) const {
 
         for (int y = 0; y < image_height; ++y) {
             for (int x = 0; x < image_width; ++x) {
-                Spectrum c = pixel(x, y) * scale;
-                unsigned char channels[] = {displayByte(c.x), displayByte(c.y), displayByte(c.z)};
+                SpectrumRGB c = pixel(x, y) * scale;
+                unsigned char channels[] = {displayByte(c[0]), displayByte(c[1]), displayByte(c[2])};
                 file.write(reinterpret_cast<const char*>(channels), sizeof(channels));
             }
         }

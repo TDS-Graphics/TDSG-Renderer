@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(TDSG-Renderer LANGUAGES CXX)
 find_package(Threads REQUIRED)
+option(TDSG_SPECTRAL "spectral rendering!!!" OFF)
 
 add_library(tdsg
+    src/color/spectrum.cpp
     src/geometry/primitive.cpp
     src/geometry/bvh.cpp
     src/material/material.cpp
@@ -21,6 +23,7 @@ target_compile_features(tdsg PUBLIC cxx_std_17)
 target_include_directories(tdsg PUBLIC src)
 target_include_directories(tdsg SYSTEM PRIVATE third_party)
 target_compile_definitions(tdsg PRIVATE TDSG_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets")
+target_compile_definitions(tdsg PUBLIC TDSG_SPECTRAL=$<BOOL:${TDSG_SPECTRAL}>)
 target_link_libraries(tdsg PUBLIC Threads::Threads)
 if(MSVC)
     target_compile_options(tdsg PRIVATE /W4 /permissive- /utf-8)

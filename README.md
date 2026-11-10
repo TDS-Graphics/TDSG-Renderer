@@ -1,7 +1,12 @@
 # TDSG Renderer
-TDSG Renderer，一个基于物理的渲染器。面向 TDS 游戏开发社团图形组的教学。
 
-承蒙老师的支持和信任，TDSG Renderer 将同时作为成都信息工程大学《计算机图形学》官方课程的实验，落地时间和形式待定。
+<p align="center">
+  <img src="assets/tds.jpg" width="500"/>
+</p>
+
+TDSG Renderer，一个基于物理的渲染器。它面向 TDS 游戏开发社团图形组的教学。
+
+> 承蒙老师的支持和信任，TDSG Renderer 将同时作为成都信息工程大学《计算机图形学》官方课程的实验，落地时间和形式待定。
 
 ## Features
 
@@ -29,16 +34,35 @@ TDSG Renderer，一个基于物理的渲染器。面向 TDS 游戏开发社团�
 - [ ] denoiser
 - [x] PCG 随机数生成器
 - [x] 多线程
+- [ ] GPU 加速（CUDA 后端）
+- [x] 光谱渲染
 - [ ] 解析外部场景 
 - [ ] 参与介质（体渲染）
 
 ## 构建与运行
+通过 `CMakeLists.txt` 的 `TDSG_SPECTRAL` 切换光谱 / RGB 渲染，默认 `OFF`（RGB 渲染）。
 
 Windows：你需要 Visual Studio 26 工具链 + CMake。
+
+首次配置：
+```powershell
+cmake -S . -B build
+```
+
+Debug 构建：
+```powershell
+cmake --build build --config Debug --parallel
+```
+
+Release 构建：
+```powershell
+cmake --build build --config Release --parallel
+```
 
 macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 
 首次使用请先运行 `./tdsg_render --help` 浏览一下基本功能。
+
 
 ## 示例场景
 
@@ -78,6 +102,13 @@ macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 命令：`./tdsg_render --scene lucy --integrator mis --spp 400`
 <p align="center">
   <img src="assets/lucy.png" width="512"/>
+</p>
+
+- Holy TDS
+
+命令：`./tdsg_render --scene tds --integrator mis --spp 384`
+<p align="center">
+  <img src="assets/tds.jpg" width="512"/>
 </p>
 
 

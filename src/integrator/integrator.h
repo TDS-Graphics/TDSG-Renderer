@@ -6,13 +6,14 @@
 class Integrator {
 public:
     virtual ~Integrator() = default;
-    virtual Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const = 0;
+    // Radiance in the selected color backend; the color sample is shared by the path.
+    virtual Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const = 0;
 };
 
 class PathIntegrator : public Integrator {
 public:
     PathIntegrator(int max_depth = 8) : max_depth_(max_depth) {}
-    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const override;
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const override;
 private:
     int max_depth_;
 };
@@ -20,7 +21,7 @@ private:
 class PathNEEIntegrator : public Integrator {
 public:
     PathNEEIntegrator(int max_depth = 8) : max_depth_(max_depth) {}
-    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const override;
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const override;
 private:
     int max_depth_;
 };
@@ -28,7 +29,7 @@ private:
 class PathMISIntegrator : public Integrator {
 public:
     PathMISIntegrator(int max_depth = 8) : max_depth_(max_depth) {}
-    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const override;
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const override;
 private:
     int max_depth_;
 };
@@ -44,14 +45,14 @@ class BDPTIntegrator : public Integrator {
 class WhittedIntegrator : public Integrator {
 public:
     WhittedIntegrator(int max_depth = 8) : max_depth_(max_depth) {}
-    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler) const override;
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const override;
 private:
     int max_depth_;
 };
 
 class NormalIntegrator : public Integrator {
 public:
-    Spectrum Li(const Ray& ray, const Scene& scene, Sampler&) const override;
+    Spectrum Li(const Ray& ray, const Scene& scene, Sampler&, const ColorSample& color_sample) const override;
 };
 
 std::unique_ptr<Integrator> makeIntegrator(std::string_view name, int max_depth);

@@ -4,12 +4,15 @@
     本渲染器的初衷是用作 TDS 游戏开发协会图形组（TDS Graphics）的教学，它在未来还将作为一个实验
     被学校图形学课程所采纳！
 
+    TDSG Renderer is Copyright (c) 2026 by Tianyi Bai (@BrownieCake-). MIT License.
+
+    thirdparty:
+    - tinyobjloader is Copyright (c) 2012-Present, Syoyo Fujita and many contributors. MIT License.
+    - tinybvh is Copyright (c) 2024 Jacco Bikker. MIT License.
+    - pbrt v3 is Copyright (c) 1998-2015, Matt Pharr, Greg Humphreys, and Wenzel Jakob. BSD license.
+    - pbrt v4 is Copyright (c) 1998-2020, Matt Pharr, Greg Humphreys, and Wenzel Jakob. Apache-2.0.
+
     The MIT License (MIT)
-
-    Copyright (c) 2026 by Tianyi Bai (@BrownieCake-).
-
-    thirdparty: `tinyobjloader`, Copyright (c) 2012-Present, Syoyo Fujita and
-    many contributors.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +58,7 @@ int main(int argc, char** argv) {
         auto getValue = [&]() { return argv[++i]; };
 
         if (arg == "--help") {
-            std::cout << "TDSG Renderer v0.0.2\n"
+            std::cout << "TDSG Renderer v0.0.3\n"
                         << "Copyright (c) 2026 by BrownieCake- @ TDS, under MIT License.\n"
                         << "Usage:\n"
                         << "  --scene whitted|cornell|cornell_glass|roughness_test|area_light|lucy|veach\n"

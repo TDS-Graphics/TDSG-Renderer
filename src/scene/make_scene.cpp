@@ -45,16 +45,25 @@ void box(Scene& scene, Vec3f size, const Transform& transform, int material) {
 }
 
 int cornellBox(Scene& scene, bool green_left = false) {
-    int white = scene.addMaterial({MaterialType::Diffuse, Spectrum(0.73f)});
-    int red = scene.addMaterial({MaterialType::Diffuse, {0.63f, 0.065f, 0.05f}});
-    int green = scene.addMaterial({MaterialType::Diffuse, {0.14f, 0.45f, 0.091f}});
-    int light = scene.addMaterial({MaterialType::Diffuse, Spectrum(0), {17, 15, 12}});
+    int white = scene.addMaterial({MaterialType::Diffuse, Color(0.73f)});
+    int red = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.63f, 0.065f, 0.05f})});
+    int green = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.14f, 0.45f, 0.091f})});
+    int light = scene.addMaterial({MaterialType::Diffuse, Color(0),
+                                  fromRGB({17, 15, 12}, SpectrumType::Illuminant)});
 
     quad(scene, {-1, 0, 1}, {1, 0, 1}, {1, 0, -1}, {-1, 0, -1}, white);
     quad(scene, {-1, 2, -1}, {1, 2, -1}, {1, 2, 1}, {-1, 2, 1}, white);
     quad(scene, {-1, 0, -1}, {1, 0, -1}, {1, 2, -1}, {-1, 2, -1}, white);
-    quad(scene, {-1, 0, 1}, {-1, 0, -1}, {-1, 2, -1}, {-1, 2, 1}, green_left ? green : red);
-    quad(scene, {1, 0, -1}, {1, 0, 1}, {1, 2, 1}, {1, 2, -1}, green_left ? red : green);
+    int left, right;
+    if (green_left) {
+        left = green;
+        right = red;
+    } else {
+        left = red;
+        right = green;
+    }
+    quad(scene, {-1, 0, 1}, {-1, 0, -1}, {-1, 2, -1}, {-1, 2, 1}, left);
+    quad(scene, {1, 0, -1}, {1, 0, 1}, {1, 2, 1}, {1, 2, -1}, right);
 
     quad(scene, {-0.32f, 1.99f, -0.4f}, {0.32f, 1.99f, -0.4f},
                 {0.32f, 1.99f, 0.2f}, {-0.32f, 1.99f, 0.2f}, light);
@@ -77,7 +86,7 @@ SceneSetup MakeCornell() {
 SceneSetup MakeCornellGlass() {
     Scene scene;
     int white = cornellBox(scene);
-    int glass = scene.addMaterial({MaterialType::Glass, Spectrum(1), Spectrum(0), 0.3f, 1.5f});
+    int glass = scene.addMaterial({MaterialType::Glass, Color(1), Color(0), 0.3f, 1.5f});
 
     box(scene, {0.65f, 0.65f, 0.65f}, {{-0.4f, 0, 0.35f}, 1, -18}, white);
     scene.addPrimitive({Sphere{{0.38f, 0.6f, -0.3f}, 0.6f}, glass});
@@ -88,10 +97,11 @@ SceneSetup MakeCornellGlass() {
 
 SceneSetup MakeRoughness() {
     Scene scene;
-    int white = scene.addMaterial({MaterialType::Diffuse, Spectrum(0.73f)});
-    int green = scene.addMaterial({MaterialType::Diffuse, {0.14f, 0.45f, 0.091f}});
-    int red = scene.addMaterial({MaterialType::Diffuse, {0.63f, 0.065f, 0.05f}});
-    int light = scene.addMaterial({MaterialType::Diffuse, Spectrum(0), Spectrum(3)});
+    int white = scene.addMaterial({MaterialType::Diffuse, Color(0.73f)});
+    int green = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.14f, 0.45f, 0.091f})});
+    int red = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.63f, 0.065f, 0.05f})});
+    int light = scene.addMaterial({MaterialType::Diffuse, Color(0),
+                                  fromRGB(SpectrumRGB(3), SpectrumType::Illuminant)});
 
     quad(scene, {-3.4f, 0, 4}, {3.4f, 0, 4}, {3.4f, 0, -1.5f}, {-3.4f, 0, -1.5f}, white);
     quad(scene, {-3.4f, 2.4f, -1.5f}, {3.4f, 2.4f, -1.5f}, {3.4f, 2.4f, 4}, {-3.4f, 2.4f, 4}, white);
@@ -103,7 +113,7 @@ SceneSetup MakeRoughness() {
 
     const float roughness[] = {0.02f, 0.12f, 0.25f, 0.4f, 0.65f, 1.0f};
     for (int i = 0; i < 6; ++i) {
-        int metal = scene.addMaterial({MaterialType::Metal, Spectrum(0.9f), Spectrum(0), roughness[i]});
+        int metal = scene.addMaterial({MaterialType::Metal, Color(0.9f), Color(0), roughness[i]});
         scene.addPrimitive({Sphere{{-2.65f + 1.06f * i, 0.48f, 0}, 0.48f}, metal});
     }
 
@@ -113,9 +123,10 @@ SceneSetup MakeRoughness() {
 
 SceneSetup MakeAreaLight() {
     Scene scene;
-    int floor = scene.addMaterial({MaterialType::Diffuse, Spectrum(0.55f)});
-    int occluder = scene.addMaterial({MaterialType::Diffuse, Spectrum(0.35f)});
-    int light = scene.addMaterial({MaterialType::Diffuse, Spectrum(0), Spectrum(6)});
+    int floor = scene.addMaterial({MaterialType::Diffuse, Color(0.55f)});
+    int occluder = scene.addMaterial({MaterialType::Diffuse, Color(0.35f)});
+    int light = scene.addMaterial({MaterialType::Diffuse, Color(0),
+                                  fromRGB(SpectrumRGB(6), SpectrumType::Illuminant)});
 
     quad(scene, {-2.2f, 0, 1.65f}, {2.2f, 0, 1.65f}, {2.2f, 0, -1.65f}, {-2.2f, 0, -1.65f}, floor);
     quad(scene, {-2.18f, 0.02f, 0.65f}, {-2.18f, 0.02f, -1.5f},
@@ -129,26 +140,26 @@ SceneSetup MakeAreaLight() {
 SceneSetup MakeLucy() {
     Scene scene;
     int white = cornellBox(scene, true);
-    int glass = scene.addMaterial({MaterialType::Glass, Spectrum(1), Spectrum(0), 0.3f, 1.5f});
+    int glass = scene.addMaterial({MaterialType::Glass, Color(1), Color(0), 0.3f, 1.5f});
 
     // The bundled OBJ is centered in X/Z, rests at Y=0, and has unit height.
     const auto model = std::filesystem::path(TDSG_ASSET_DIR) / "lucy.obj";
-    LoadObj(scene, model, {{-0.48f, 0, -0.32f}, 1.45f, 0}, white);
-    LoadObj(scene, model, {{0.42f, 0, 0.15f}, 1.72f, 0}, glass);
+    LoadObj(scene, model, {{-0.48f, 0, -0.32f}, 1.45f, 180}, white);
+    LoadObj(scene, model, {{0.42f, 0, 0.15f}, 1.72f, 150}, glass);
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
-        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 512, 512)};
+        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 4096, 4096)};
 }
 
 SceneSetup MakeWhitted() {
     Scene scene;
-    scene.setBackground({0.08f, 0.3f, 0.65f});
+    scene.setBackground(fromRGB({0.08f, 0.3f, 0.65f}, SpectrumType::Illuminant));
 
     // Reference: https://alphapixeldev.com/we-solve-your-difficult-problems-forward-porting-with-legacy-media-and-code-part-5-animation-and-texturing/
-    int red = scene.addMaterial({MaterialType::Diffuse, {0.85f, 0.025f, 0.015f}});
-    int yellow = scene.addMaterial({MaterialType::Diffuse, {0.9f, 0.8f, 0.035f}});
-    int glass = scene.addMaterial({MaterialType::Glass, Spectrum(1), Spectrum(0), 0.3f, 1.5f});
-    int mirror = scene.addMaterial({MaterialType::Mirror, Spectrum(0.95f)});
+    int red = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.85f, 0.025f, 0.015f})});
+    int yellow = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.9f, 0.8f, 0.035f})});
+    int glass = scene.addMaterial({MaterialType::Glass, Color(1), Color(0), 0.3f, 1.5f});
+    int mirror = scene.addMaterial({MaterialType::Mirror, Color(0.95f)});
 
     constexpr int tiles = 16;
     constexpr float tile_size = 0.65f;
@@ -156,7 +167,12 @@ SceneSetup MakeWhitted() {
         for (int x = 0; x < tiles; ++x) {
             float x0 = (x - tiles / 2) * tile_size;
             float z0 = (z - tiles / 2) * tile_size;
-            int material = (x + z) % 2 == 0 ? yellow : red;
+            int material;
+            if ((x + z) % 2 == 0) {
+                material = yellow;
+            } else {
+                material = red;
+            }
             quad(scene, {x0, 0, z0}, {x0, 0, z0 + tile_size},
                         {x0 + tile_size, 0, z0 + tile_size}, {x0 + tile_size, 0, z0}, material);
         }
@@ -164,8 +180,9 @@ SceneSetup MakeWhitted() {
 
     scene.addPrimitive({Sphere{{-1.05f, 1.75f, -0.4f}, 1.25f}, glass});
     scene.addPrimitive({Sphere{{1.1f, 0.8f, 0.55f}, 0.8f}, mirror});
-    scene.addLight(std::make_shared<PointLight>(Vec3f{-3, 6, 4}, Spectrum(220)));
-    //scene.addLight(std::make_shared<PointLight>(Vec3f{4, 6, -3}, Spectrum(25)));
+    scene.addLight(std::make_shared<PointLight>(Vec3f{-3, 6, 4},
+        fromRGB(SpectrumRGB(220), SpectrumType::Illuminant)));
+    //scene.addLight(std::make_shared<PointLight>(Vec3f{4, 6, -3}, Color(25)));
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
         Vec3f{0, 3.2f, 9}, Vec3f{0, 1.1f, 0}, 39.0f, 800, 600)};
@@ -176,12 +193,13 @@ SceneSetup MakeVeach() {
     Vec3f eye{0, 5, 9};
     Vec3f light_center{0, 2.6f, -2.3f};
 
-    int floor = scene.addMaterial({MaterialType::Diffuse, {0.12f, 0.14f, 0.17f}});
+    int floor = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.12f, 0.14f, 0.17f})});
     quad(scene, {-5, 0, 4}, {5, 0, 4}, {5, 0, -4}, {-5, 0, -4}, floor);
 
     const float roughness[] = {0.5f, 0.32f, 0.18f, 0.08f};
     for (int i = 0; i < 4; ++i) {
-        int metal = scene.addMaterial({MaterialType::Metal, {0.88f, 0.78f, 0.62f}, Spectrum(0), roughness[i]});
+        int metal = scene.addMaterial({MaterialType::Metal, fromRGB({0.88f, 0.78f, 0.62f}),
+                                      Color(0), roughness[i]});
         Vec3f center{0, 0.25f, -0.9f + i * 1.05f};
         Vec3f n = normalize(normalize(eye - center) + normalize(light_center - center));
         Vec3f x{3.8f, 0, 0}, z = normalize(cross({1, 0, 0}, n)) * 0.42f;
@@ -192,7 +210,8 @@ SceneSetup MakeVeach() {
     const float radii[] = {0.04f, 0.1f, 0.22f, 0.45f};
     for (int i = 0; i < 4; ++i) {
         float r = radii[i];
-        int light = scene.addMaterial({MaterialType::Diffuse, Spectrum(0), Spectrum(2 / (r * r))});
+        int light = scene.addMaterial({MaterialType::Diffuse, Color(0),
+            fromRGB(SpectrumRGB(2 / (r * r)), SpectrumType::Illuminant)});
         scene.addPrimitive({Sphere{{-2.7f + i * 1.8f, light_center.y, light_center.z}, r}, light});
     }
 
@@ -200,10 +219,29 @@ SceneSetup MakeVeach() {
         eye, Vec3f{0, 0.7f, 0}, 38.0f, 800, 600)};
 }
 
+SceneSetup MakeTDS() {
+    Scene scene;
+    int white = cornellBox(scene, true);
+    int glass = scene.addMaterial({MaterialType::Glass, Color(1), Color(0), 0.3f, 1.5f});
+    int metal = scene.addMaterial({MaterialType::Metal, Color(0.9f), Color(0), 0.4f});
+
+    const auto lucy = std::filesystem::path(TDSG_ASSET_DIR) / "lucy.obj";
+    const auto tds = std::filesystem::path(TDSG_ASSET_DIR) / "tdsg.obj";
+    const auto bunny = std::filesystem::path(TDSG_ASSET_DIR) / "bunny.obj";
+
+    LoadObj(scene, tds, {{-0.2f, 0, -0.32f}, 1.00f, 0}, metal);
+    LoadObj(scene, lucy, {{0.42f, 0, 0.35f}, 1.72f, 150}, glass);
+    LoadObj(scene, bunny, {{-0.28f, -0.22f, 0.32f}, 5.0f, 0}, glass);
+
+    return {std::move(scene), std::make_unique<PinholeCamera>(
+        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 2048, 2048)};
+}
+
 std::optional<SceneSetup> makeScene(std::string_view name) {
     // TODO 自定义场景描述文件
     using Factory = SceneSetup (*)();
-    static constexpr std::array<std::pair<std::string_view, Factory>, 7> factories{{
+    static constexpr std::array<std::pair<std::string_view, Factory>, 8> factories{{
+        {"tds", MakeTDS},
         {"cornell", MakeCornell},
         {"cornell_glass", MakeCornellGlass},
         {"roughness_test", MakeRoughness},

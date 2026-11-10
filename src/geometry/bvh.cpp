@@ -1,90 +1,93 @@
 #include "geometry/bvh.h"
-#include <numeric>
+
+// TinyBVH 1.9.1, upstream revision c9be3103cc9693b456b0a0353927c11cac7d710f.
+// Custom geometry uses the portable BVH builder and traversal.
+#define TINYBVH_NO_SIMD
+#define TINYBVH_IMPLEMENTATION
+#include "tinybvh/tiny_bvh.h"
+
+namespace {
+
+struct IntersectionQuery {
+    const Ray& ray;
+    const std::vector<Primitive>& primitives;
+    Hit& hit;
+    bool found = false;
+
+    bool Intersect(uint32_t id) {
+        if (!primitives[id].Intersect(ray, hit)) {
+            return false;
+        }
+        hit.primitive = static_cast<int>(id);
+        found = true;
+        return true;
+    }
+};
+
+} // namespace
+
+struct BVH::Impl {
+    tinybvh::BVH bvh;
+};
 
 void BVH::Build(const std::vector<Primitive>& primitives) {
-    nodes.clear();
-    indices.resize(primitives.size());
-    std::iota(indices.begin(), indices.end(), 0);
-
-    if (!primitives.empty()) {
-        buildNode(primitives, 0, int(primitives.size()));
+    if (primitives.empty()) {
+        impl.reset();
+        return;
     }
+
+    auto built = std::make_shared<Impl>();
+    struct BuildContext {
+        const std::vector<Primitive>& primitives;
+    } context{primitives};
+    built->bvh.customUserdata = &context;
+    built->bvh.Build([](uint32_t id, tinybvh::bvhvec3& lower,
+                       tinybvh::bvhvec3& upper, void* userdata) {
+        const auto& primitives = static_cast<const BuildContext*>(userdata)->primitives;
+        const Bounds bounds = primitives[id].getBounds();
+        // Keep edge hits inside the bounds despite roundoff in slab traversal.
+        const float scale = std::max({1.0f, std::abs(bounds.lower.x), std::abs(bounds.lower.y),
+                                     std::abs(bounds.lower.z), std::abs(bounds.upper.x),
+                                     std::abs(bounds.upper.y), std::abs(bounds.upper.z)});
+        const float padding = 8 * std::numeric_limits<float>::epsilon() * scale;
+        lower = tinybvh::bvhvec3(bounds.lower.x - padding, bounds.lower.y - padding,
+                                bounds.lower.z - padding);
+        upper = tinybvh::bvhvec3(bounds.upper.x + padding, bounds.upper.y + padding,
+                                bounds.upper.z + padding);
+    }, static_cast<uint32_t>(primitives.size()));
+    built->bvh.customUserdata = nullptr;
+
+    built->bvh.customIntersect = [](tinybvh::Ray& ray, uint32_t id, void*) {
+        auto& query = *static_cast<IntersectionQuery*>(ray.hit.auxData);
+        if (!query.Intersect(id)) {
+            return false;
+        }
+        ray.hit.t = query.hit.t;
+        ray.hit.prim = id;
+        return true;
+    };
+    built->bvh.customIsOccluded = [](const tinybvh::Ray& ray, uint32_t id, void*) {
+        return static_cast<IntersectionQuery*>(ray.hit.auxData)->Intersect(id);
+    };
+    impl = std::move(built);
 }
 
-int BVH::buildNode(const std::vector<Primitive>& primitives, int start, int end) {
-    int index = int(nodes.size());
-    nodes.push_back({});
-
-    Bounds bounds, centroids;
-    for (int i = start; i < end; ++i) {
-        Bounds b = primitives[indices[i]].getBounds();
-        bounds.expand(b);
-        centroids.expand(b.center());
-    }
-    nodes[index].bounds = bounds;
-
-    if (end - start <= 4) {
-        nodes[index].start = start;
-        nodes[index].count = end - start;
-        return index;
-    }
-
-    Vec3f extent = centroids.upper - centroids.lower;
-    int axis;
-    if (extent.x > extent.y) {
-        axis = 0;
-    } else {
-        axis = 1;
-    }
-
-    if (extent.z > extent[axis]) {
-        axis = 2;
-    }
-
-    int middle = (start + end) / 2;
-    std::nth_element(indices.begin() + start, indices.begin() + middle, indices.begin() + end,
-                     [&](int a, int b) {
-                         return primitives[a].getBounds().center()[axis] < primitives[b].getBounds().center()[axis];
-                     });
-
-    int left = buildNode(primitives, start, middle);
-    int right = buildNode(primitives, middle, end);
-    nodes[index].left = left;
-    nodes[index].right = right;
-    return index;
-}
-
-bool BVH::Intersect(const Ray& ray, const std::vector<Primitive>& primitives, Hit& hit, bool any_hit) const {
-    return !nodes.empty() && intersectNode(0, ray, primitives, hit, any_hit);
-}
-
-bool BVH::intersectNode(int index, const Ray& ray, const std::vector<Primitive>& primitives,
-                         Hit& hit, bool any_hit) const {
-    const Node& node = nodes[index];
-    if (!node.bounds.Intersect(ray, hit.t)) {
+bool BVH::Intersect(const Ray& ray, const std::vector<Primitive>& primitives,
+                    Hit& hit, bool any_hit) const {
+    const float limit = std::min(ray.t_far, hit.t);
+    if (!impl || limit <= ray.t_near) {
         return false;
     }
 
-    bool found = false;
-    if (node.count) {
-        for (int i = node.start; i < node.start + node.count; ++i) {
-            int id = indices[i];
-            if (primitives[id].Intersect(ray, hit)) {
-                hit.primitive = id;
-                found = true;
-                if (any_hit) {
-                    return true;
-                }
-            }
-        }
-    } else {
-        found = intersectNode(node.left, ray, primitives, hit, any_hit);
-        if (found && any_hit) {
-            return true;
-        }
-
-        found = intersectNode(node.right, ray, primitives, hit, any_hit) || found;
+    IntersectionQuery query{ray, primitives, hit};
+    tinybvh::Ray bvh_ray(tinybvh::bvhvec3(ray.origin.x, ray.origin.y, ray.origin.z),
+                         tinybvh::bvhvec3(ray.direction.x, ray.direction.y, ray.direction.z),
+                         limit);
+    // Per-ray state keeps concurrent traversal independent of shared BVH data.
+    bvh_ray.hit.auxData = &query;
+    if (any_hit) {
+        return impl->bvh.IsOccluded(bvh_ray);
     }
-
-    return found;
+    impl->bvh.Intersect(bvh_ray);
+    return query.found;
 }

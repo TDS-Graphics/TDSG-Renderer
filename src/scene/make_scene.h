@@ -17,5 +17,6 @@ SceneSetup MakeAreaLight();
 SceneSetup MakeLucy();
 SceneSetup MakeWhitted();
 SceneSetup MakeVeach();
+SceneSetup MakeTDS();
 std::optional<SceneSetup> makeScene(std::string_view name);
 

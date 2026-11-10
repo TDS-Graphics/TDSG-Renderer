@@ -3,22 +3,22 @@
 #include <utility>
 
 // 路径追踪
-Spectrum PathTracing(const Ray& ray, const Scene& scene, Sampler& sampler, int depth, int max_depth) {
+Spectrum PathTracing(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample, int depth, int max_depth) {
     Hit hit;
     if (!scene.Intersect(ray, hit)) {
-        return scene.background();
+        return color_sample.evaluate(scene.background());
     }
     Vec3f wo = -ray.direction;
     const Material& material = scene.getMaterial(hit.materialID);
-    BSDFSample sampledBSDF = material.Sample(wo, hit.normal, hit.front_face, sampler);
-    Spectrum radiance = material.emission;
+    BSDFSample sampledBSDF = material.Sample(wo, hit.normal, hit.front_face, sampler, color_sample);
+    Spectrum radiance = color_sample.evaluate(material.emission);
 
     if (depth >= max_depth) {
         return radiance;
     }
 
     // 考虑采样到背面等情况
-    if (sampledBSDF.pdf == 0 || maxComponent(sampledBSDF.weight) == 0) {
+    if (sampledBSDF.pdf == 0 || isZero(sampledBSDF.weight)) {
         return radiance;
     }
 
@@ -27,14 +27,14 @@ Spectrum PathTracing(const Ray& ray, const Scene& scene, Sampler& sampler, int d
     Vec3f dir = sampledBSDF.direction;
     Ray next_ray(o, dir);
     // 递归累加后续路径贡献
-    return radiance + sampledBSDF.weight * PathTracing(next_ray, scene, sampler, depth + 1, max_depth);
+    return radiance + sampledBSDF.weight * PathTracing(next_ray, scene, sampler, color_sample, depth + 1, max_depth);
 }
 
 // 路径追踪 + NEE
-Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, int depth, int max_depth, bool previous_delta = true) {
+Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample, int depth, int max_depth, bool previous_delta = true) {
     Hit hit;
     if (!scene.Intersect(ray, hit)) {
-        return scene.background();
+        return color_sample.evaluate(scene.background());
     }
 
     const Lights& lights = scene.getLights();
@@ -45,7 +45,7 @@ Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, in
 
     // 自发光
     if (previous_delta) {
-        radiance += lights.emission(hit, wo);
+        radiance += lights.emission(hit, wo, color_sample);
     }
 
     if (depth >= max_depth) {
@@ -54,7 +54,7 @@ Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, in
 
     // NEE
     if (!material.isDelta()) {
-        LightSample light = lights.sampleLight(hit.position, sampler);
+        LightSample light = lights.sampleLight(hit.position, sampler, color_sample);
 
         float cos_theta = std::max(
             0.0f, dot(hit.normal, light.direction)
@@ -66,7 +66,7 @@ Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, in
             Ray shadow_ray(shadow_origin, to_light, 1e-4f, length(to_light) - rayEpsilon(light.position));
 
             if (!scene.occluded(shadow_ray)) {
-                radiance += material.eval(wo, light.direction, hit.normal)
+                radiance += material.eval(wo, light.direction, hit.normal, color_sample)
                             * light.radiance
                             * (cos_theta / light.pdf);
             }
@@ -75,10 +75,10 @@ Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, in
 
     // BSDF sampling
     BSDFSample bsdf = material.Sample(
-        wo, hit.normal, hit.front_face, sampler
+        wo, hit.normal, hit.front_face, sampler, color_sample
     );
 
-    if (bsdf.pdf <= 0 || maxComponent(bsdf.weight) <= 0) {
+    if (bsdf.pdf <= 0 || isZero(bsdf.weight)) {
         return radiance;
     }
 
@@ -89,23 +89,23 @@ Spectrum PathTracingNEE(const Ray& ray, const Scene& scene, Sampler& sampler, in
     Ray next_ray(next_origin, bsdf.direction);
 
     // 递归累加后续路径贡献
-    return radiance + bsdf.weight * PathTracingNEE(next_ray,scene, sampler, depth + 1, max_depth, bsdf.delta);
+    return radiance + bsdf.weight * PathTracingNEE(next_ray,scene, sampler, color_sample, depth + 1, max_depth, bsdf.delta);
 }
 
 // 路径追踪 + NEE + MIS
-Spectrum PathTracingMIS(const Ray& ray, const Scene& scene, Sampler& sampler, int depth, int max_depth,
+Spectrum PathTracingMIS(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample, int depth, int max_depth,
                         Vec3f previous_position = {0.f, 0.f, 0.f}, float previous_bsdf_pdf = 0, bool previous_delta = true) {
     Hit hit;
     if (!scene.Intersect(ray, hit)) {
-        return scene.background();
+        return color_sample.evaluate(scene.background());
     }
 
     Vec3f wo = -ray.direction;
     const Material& material = scene.getMaterial(hit.materialID);
     const Lights& lights = scene.getLights();
-    Spectrum radiance = lights.emission(hit, wo);
+    Spectrum radiance = lights.emission(hit, wo, color_sample);
 
-    if (maxComponent(radiance) > EPS && !previous_delta) {
+    if (!previous_delta) {
         float light_pdf = lights.lightPdf(previous_position, hit);
         radiance *= powerHeuristic(previous_bsdf_pdf, light_pdf);
     }
@@ -116,7 +116,7 @@ Spectrum PathTracingMIS(const Ray& ray, const Scene& scene, Sampler& sampler, in
 
     // Next-event estimation (NEE) 直接采样光源，和 BSDF 采样按 MIS 权重混合
     if (!material.isDelta()) {
-        LightSample light = lights.sampleLight(hit.position, sampler);
+        LightSample light = lights.sampleLight(hit.position, sampler, color_sample);
         Vec3f wi = light.direction;
 
         float cos_theta = std::max(0.0f, dot(hit.normal, wi));
@@ -133,37 +133,42 @@ Spectrum PathTracingMIS(const Ray& ray, const Scene& scene, Sampler& sampler, in
                 float bsdf_pdf = material.pdf(wo, wi, hit.normal);
 
                 // delta 散射事件的权重为1，因为方向确定
-                float mis_weight = light.delta ? 1.0f : powerHeuristic(light.pdf, bsdf_pdf);
+                float mis_weight;
+                if (light.delta) {
+                    mis_weight = 1;
+                } else {
+                    mis_weight = powerHeuristic(light.pdf, bsdf_pdf);
+                }
 
-                radiance += material.eval(wo, wi, hit.normal)
+                radiance += material.eval(wo, wi, hit.normal, color_sample)
                             * light.radiance
                             * (cos_theta * mis_weight / light.pdf);
             }
         }
     }
 
-    BSDFSample bsdf = material.Sample(wo, hit.normal, hit.front_face, sampler);
-    if (bsdf.pdf == 0 || maxComponent(bsdf.weight) == 0) {
+    BSDFSample bsdf = material.Sample(wo, hit.normal, hit.front_face, sampler, color_sample);
+    if (bsdf.pdf == 0 || isZero(bsdf.weight)) {
         return radiance;
     }
 
     Vec3f origin = offsetOrigin(hit.position, hit.geometric_normal, bsdf.direction);
     Ray next_ray(origin, bsdf.direction);
-    return radiance + bsdf.weight * PathTracingMIS(next_ray, scene, sampler, depth + 1, max_depth, hit.position, bsdf.pdf, bsdf.delta);
+    return radiance + bsdf.weight * PathTracingMIS(next_ray, scene, sampler, color_sample, depth + 1, max_depth, hit.position, bsdf.pdf, bsdf.delta);
 }
 
 
 // Whitted-style Ray Tracing
-Spectrum WhittedRayTracing(const Ray& ray, const Scene& scene, int depth, int max_depth) {
+Spectrum WhittedRayTracing(const Ray& ray, const Scene& scene, const ColorSample& color_sample, int depth, int max_depth) {
     Hit hit;
     if (!scene.Intersect(ray, hit)) {
-        return scene.background();
+        return color_sample.evaluate(scene.background());
     }
 
     Vec3f wo = -ray.direction;
     const Material& material = scene.getMaterial(hit.materialID);
     const Lights& lights = scene.getLights();
-    Spectrum radiance = lights.emission(hit, wo);
+    Spectrum radiance = lights.emission(hit, wo, color_sample);
 
     if (!material.isDelta()) {
         for (size_t i = 0; i < lights.size(); ++i) {
@@ -171,7 +176,7 @@ Spectrum WhittedRayTracing(const Ray& ray, const Scene& scene, int depth, int ma
             if (!source.isDelta()) {
                 continue;
             }
-            LightSample light = source.sample(hit.position, {});
+            LightSample light = source.sample(hit.position, {}, color_sample);
             float cos_theta = std::max(0.0f, dot(hit.normal, light.direction));
             if (light.pdf <= 0 || cos_theta <= 0) {
                 continue;
@@ -182,70 +187,77 @@ Spectrum WhittedRayTracing(const Ray& ray, const Scene& scene, int depth, int ma
             Ray shadow_ray(origin, to_light, 1e-4f,
                            length(to_light) - rayEpsilon(light.position));
             if (!scene.occluded(shadow_ray)) {
-                radiance += material.eval(wo, light.direction, hit.normal)
+                radiance += material.eval(wo, light.direction, hit.normal, color_sample)
                             * light.radiance * cos_theta;
             }
         }
     }
 
     // 深度上限只终止次级光线，当前表面的自发光和局部直接光仍然保留
-    if (depth >= max_depth || maxComponent(material.color) <= 0) {
+    Spectrum reflectance = color_sample.evaluate(material.color);
+    if (depth >= max_depth || isZero(reflectance)) {
         return radiance;
     }
 
     auto trace = [&](Vec3f direction) {
         Ray next_ray(offsetOrigin(hit.position, hit.geometric_normal, direction), direction);
-        return WhittedRayTracing(next_ray, scene, depth + 1, max_depth);
+        return WhittedRayTracing(next_ray, scene, color_sample, depth + 1, max_depth);
     };
 
     if (material.type == MaterialType::Mirror)
     {
-        radiance += material.color * trace(reflect(wo, hit.normal));
+        radiance += reflectance * trace(reflect(wo, hit.normal));
     }
     else if (material.type == MaterialType::Glass)
     {
-        float eta = hit.front_face ? 1 / material.ior : material.ior;
+        float eta;
+        if (hit.front_face) {
+            eta = 1 / material.ior;
+        } else {
+            eta = material.ior;
+        }
         float cos_i = std::clamp(dot(wo, hit.normal), 0.0f, 1.0f);
         float sin2_t = eta * eta * (1 - cos_i * cos_i);
 
         if (1 - sin2_t <= EPS) {
             // 全反射时没有折射
-            radiance += material.color * trace(reflect(wo, hit.normal));
+            radiance += reflectance * trace(reflect(wo, hit.normal));
         } else {
             float cos_t = std::sqrt(1 - sin2_t);
             float fresnel = dielectricFresnel(cos_i, cos_t, eta);
             if (fresnel > 0) {
-                radiance += material.color * fresnel * trace(reflect(wo, hit.normal));
+                radiance += reflectance * fresnel * trace(reflect(wo, hit.normal));
             }
             if (fresnel < 1) {
                 Vec3f direction = -eta * wo + (eta * cos_i - cos_t) * hit.normal;
-                radiance += material.color * ((1 - fresnel) * eta * eta) * trace(direction);
+                radiance += reflectance * ((1 - fresnel) * eta * eta) * trace(direction);
             }
         }
     }
     return radiance;
 }
 
-Spectrum PathIntegrator::Li(const Ray& ray, const Scene& scene, Sampler& sampler) const {
-    return PathTracing(ray, scene, sampler, 0, max_depth_);
+Spectrum PathIntegrator::Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const {
+    return PathTracing(ray, scene, sampler, color_sample, 0, max_depth_);
 }
 
-Spectrum PathNEEIntegrator::Li(const Ray& ray, const Scene& scene, Sampler& sampler) const {
-    return PathTracingNEE(ray, scene, sampler, 0, max_depth_);
+Spectrum PathNEEIntegrator::Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const {
+    return PathTracingNEE(ray, scene, sampler, color_sample, 0, max_depth_);
 }
 
-Spectrum PathMISIntegrator::Li(const Ray& ray, const Scene& scene, Sampler& sampler) const {
-    return PathTracingMIS(ray, scene, sampler, 0, max_depth_);
+Spectrum PathMISIntegrator::Li(const Ray& ray, const Scene& scene, Sampler& sampler, const ColorSample& color_sample) const {
+    return PathTracingMIS(ray, scene, sampler, color_sample, 0, max_depth_);
 }
 
-Spectrum WhittedIntegrator::Li(const Ray& ray, const Scene& scene, Sampler&) const {
-    return WhittedRayTracing(ray, scene, 0, max_depth_);
+Spectrum WhittedIntegrator::Li(const Ray& ray, const Scene& scene, Sampler&, const ColorSample& color_sample) const {
+    return WhittedRayTracing(ray, scene, color_sample, 0, max_depth_);
 }
 
-Spectrum NormalIntegrator::Li(const Ray& ray, const Scene& scene, Sampler&) const {
+Spectrum NormalIntegrator::Li(const Ray& ray, const Scene& scene, Sampler&, const ColorSample& color_sample) const {
     Hit hit;
     if (scene.Intersect(ray, hit)) {
-        return (hit.normal + Spectrum(0.5)) * 0.5f;
+        Vec3f color = (hit.normal + Vec3f(1)) * 0.5f;
+        return color_sample.evaluate(fromRGB({color.x, color.y, color.z}, SpectrumType::Illuminant));
     } else {
         return Spectrum(0);
     }

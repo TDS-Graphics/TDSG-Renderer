@@ -23,11 +23,12 @@ void LoadObj(Scene& scene, const std::filesystem::path& path, const Transform& t
     bool has_textures = false;
     for (const auto& source : reader.GetMaterials()) {
         Material m;
-        m.color = {source.diffuse[0], source.diffuse[1], source.diffuse[2]};
-        m.emission = {source.emission[0], source.emission[1], source.emission[2]};
+        m.color = fromRGB({source.diffuse[0], source.diffuse[1], source.diffuse[2]});
+        m.emission = fromRGB({source.emission[0], source.emission[1], source.emission[2]},
+                            SpectrumType::Illuminant);
         if (source.illum == 5 || source.metallic > 0) {
             m.type = MaterialType::Metal;
-            m.color = {source.specular[0], source.specular[1], source.specular[2]};
+            m.color = fromRGB({source.specular[0], source.specular[1], source.specular[2]});
             if (source.roughness > 0) {
                 m.roughness = source.roughness;
             } else {
@@ -35,7 +36,7 @@ void LoadObj(Scene& scene, const std::filesystem::path& path, const Transform& t
             }
         } else if (source.illum == 7) {
             m.type = MaterialType::Glass;
-            m.color = Spectrum(1);
+            m.color = Color(1);
             m.ior = source.ior;
         }
 

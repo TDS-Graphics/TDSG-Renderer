@@ -30,9 +30,6 @@ struct Vec3f {
     }
 };
 
-using RGBSpectrum = Vec3f;
-using Spectrum = RGBSpectrum;
-
 inline Vec3f operator+(Vec3f a, Vec3f b) { return {a.x + b.x, a.y + b.y, a.z + b.z}; }
 inline Vec3f operator-(Vec3f a, Vec3f b) { return {a.x - b.x, a.y - b.y, a.z - b.z}; }
 inline Vec3f operator-(Vec3f a) { return {-a.x, -a.y, -a.z}; }
@@ -67,7 +64,6 @@ inline Vec3f normalize(Vec3f v) { return v / length(v); }
 inline Vec3f min(Vec3f a, Vec3f b) { return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)}; }
 inline Vec3f max(Vec3f a, Vec3f b) { return {std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z)}; }
 inline float maxComponent(Vec3f v) { return std::max({v.x, v.y, v.z}); }
-inline float luminance(Spectrum c) { return dot(c, {0.2126f, 0.7152f, 0.0722f}); }
 inline float square(float x) { return x * x; }
 inline float radians(float degrees) { return degrees * Pi / 180.0f; }
 inline Vec3f reflect(Vec3f wo, Vec3f n) { return 2.0f * dot(wo, n) * n - wo; }

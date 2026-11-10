@@ -31,7 +31,7 @@ void Lights::Build(const Scene& scene) {
             continue;
         }
         const Primitive& primitive = scene.getPrimitive(i);
-        Spectrum emitted = scene.getMaterial(primitive.materialID).emission;
+        Color emitted = scene.getMaterial(primitive.materialID).emission;
         if (primitive.area() > 0 && luminance(emitted) > 0) {
             primitive_lights[i] = int(lights.size());
             lights.push_back({std::make_shared<AreaLight>(i, primitive, emitted)});
@@ -50,15 +50,15 @@ void Lights::Build(const Scene& scene) {
     }
 }
 
-Spectrum Lights::emission(const Hit& hit, Vec3f wo) const {
+Spectrum Lights::emission(const Hit& hit, Vec3f wo, const ColorSample& color_sample) const {
     int index = primitive_lights[hit.primitive];
     if (index < 0) {
         return Spectrum(0);
     }
-    return lights[index].light->evaluateEmission(hit, wo);
+    return lights[index].light->evaluateEmission(hit, wo, color_sample);
 }
 
-LightSample Lights::sampleLight(Vec3f from, Sampler& sampler) const {
+LightSample Lights::sampleLight(Vec3f from, Sampler& sampler, const ColorSample& color_sample) const {
     if (light_weight == 0) {
         return {};
     }
@@ -68,7 +68,7 @@ LightSample Lights::sampleLight(Vec3f from, Sampler& sampler) const {
                                  [](double value, const Entry& candidate) {
                                      return value < candidate.cumulative_weight;
                                  });
-    LightSample result = entry->light->sample(from, sampler.next2D());
+    LightSample result = entry->light->sample(from, sampler.next2D(), color_sample);
     result.pdf *= entry->probability;
     return result;
 }
