@@ -1,7 +1,7 @@
 # TDSG Renderer
 
 <p align="center">
-  <img src="assets/tds.png" width="500"/>
+  <img src="assets/tds.jpg" width="500"/>
 </p>
 
 TDSG Renderer，一个基于物理的渲染器。它面向 TDS 游戏开发社团图形组的教学。
@@ -106,9 +106,9 @@ cmake --build build --config Release --parallel
 
 - Holy TDS
 
-命令：`./tdsg_render --scene tds --integrator mis --spp 384`
+命令：`./tdsg_render --scene tds --integrator mis --spp 2048 --depth 32`
 <p align="center">
-  <img src="assets/tds.png" width="512"/>
+  <img src="assets/tds.jpg" width="512"/>
 </p>
 
 

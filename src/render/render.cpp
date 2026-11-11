@@ -12,7 +12,6 @@ void Render(const Scene& scene, const Camera& camera, Film& film,
     int tiles_x = (width + tile_size - 1) / tile_size;
     int tiles_y = (height + tile_size - 1) / tile_size;
     int total_tiles = tiles_x * tiles_y;
-
     std::atomic<int> next_tile{0};
     std::atomic<int> completed_tiles{0};
     std::mutex progress_mutex;
@@ -32,7 +31,7 @@ void Render(const Scene& scene, const Camera& camera, Film& film,
     printProgress(0);
 
     auto worker = [&] {
-        for (;;) {
+        while (true) {
             int tile = next_tile.fetch_add(1);
             if (tile >= total_tiles) {
                 break;
@@ -47,8 +46,8 @@ void Render(const Scene& scene, const Camera& camera, Film& film,
                         Sampler sampler = Sampler::forSample(settings.seed, uint64_t(y) * width + x, s);
                         Vec2 p_film = Vec2{float(x), float(y)} + sampler.next2D();
                         Ray ray = camera.generateRay(p_film);
-
                         ColorSample color_sample = ColorSample::sample(sampler);
+
                         Spectrum radiance = integrator.Li(ray, scene, sampler, color_sample);
                         film.addSample(x, y, color_sample.toRGB(radiance));
                     }
