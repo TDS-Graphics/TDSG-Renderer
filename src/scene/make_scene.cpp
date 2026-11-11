@@ -221,7 +221,23 @@ SceneSetup MakeVeach() {
 
 SceneSetup MakeTDS() {
     Scene scene;
-    int white = cornellBox(scene, true);
+    int white = scene.addMaterial({MaterialType::Diffuse, Color(0.73f)});
+    int red = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.63f, 0.065f, 0.05f})});
+    int blue = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.14f, 0.091f, 0.791f})});
+    int light = scene.addMaterial({MaterialType::Diffuse, Color(0),
+                                  fromRGB({17, 15, 12}, SpectrumType::Illuminant)});
+
+    quad(scene, {-1, 0, 1}, {1, 0, 1}, {1, 0, -1}, {-1, 0, -1}, white);
+    quad(scene, {-1, 2, -1}, {1, 2, -1}, {1, 2, 1}, {-1, 2, 1}, white);
+    quad(scene, {-1, 0, -1}, {1, 0, -1}, {1, 2, -1}, {-1, 2, -1}, white);
+    int left, right;
+    left = blue;
+    right = red;
+    quad(scene, {-1, 0, 1}, {-1, 0, -1}, {-1, 2, -1}, {-1, 2, 1}, left);
+    quad(scene, {1, 0, -1}, {1, 0, 1}, {1, 2, 1}, {1, 2, -1}, right);
+
+    quad(scene, {-0.32f, 1.99f, -0.4f}, {0.32f, 1.99f, -0.4f},
+                {0.32f, 1.99f, 0.2f}, {-0.32f, 1.99f, 0.2f}, light);
     int glass = scene.addMaterial({MaterialType::Glass, Color(1), Color(0), 0.3f, 1.5f});
     int metal = scene.addMaterial({MaterialType::Metal, Color(0.9f), Color(0), 0.4f});
 
@@ -234,7 +250,7 @@ SceneSetup MakeTDS() {
     LoadObj(scene, bunny, {{-0.28f, -0.22f, 0.32f}, 5.0f, 0}, glass);
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
-        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 2048, 2048)};
+        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 1024, 1024)};
 }
 
 std::optional<SceneSetup> makeScene(std::string_view name) {
