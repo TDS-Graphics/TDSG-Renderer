@@ -1,7 +1,7 @@
 # TDSG Renderer
 
 <p align="center">
-  <img src="assets/tds.jpg" width="500"/>
+  <img src="assets/tds.png" width="500"/>
 </p>
 
 TDSG Renderer，一个基于物理的渲染器。它面向 TDS 游戏开发社团图形组的教学。
@@ -44,6 +44,8 @@ TDSG Renderer，一个基于物理的渲染器。它面向 TDS 游戏开发社�
 
 Windows：你需要 Visual Studio 26 工具链 + CMake。
 
+macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
+
 首次配置：
 ```powershell
 cmake -S . -B build
@@ -58,8 +60,6 @@ Release 构建：
 ```powershell
 cmake --build build --config Release --parallel
 ```
-
-macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 
 首次使用请先运行 `./tdsg_render --help` 浏览一下基本功能。
 
@@ -108,7 +108,7 @@ macOS：你需要 clang (安装 Xcode commandline tools) + CMake。
 
 命令：`./tdsg_render --scene tds --integrator mis --spp 384`
 <p align="center">
-  <img src="assets/tds.jpg" width="512"/>
+  <img src="assets/tds.png" width="512"/>
 </p>
 
 

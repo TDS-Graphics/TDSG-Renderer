@@ -141,14 +141,29 @@ SceneSetup MakeLucy() {
     Scene scene;
     int white = cornellBox(scene, true);
     int glass = scene.addMaterial({MaterialType::Glass, Color(1), Color(0), 0.3f, 1.5f});
+    int red = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.63f, 0.065f, 0.05f})});
+    int blue = scene.addMaterial({MaterialType::Diffuse, fromRGB({0.14f, 0.091f, 0.791f})});
+    int light = scene.addMaterial({MaterialType::Diffuse, Color(0),
+                                  fromRGB({17, 15, 12}, SpectrumType::Illuminant)});
 
+    quad(scene, {-1, 0, 1}, {1, 0, 1}, {1, 0, -1}, {-1, 0, -1}, white);
+    quad(scene, {-1, 2, -1}, {1, 2, -1}, {1, 2, 1}, {-1, 2, 1}, white);
+    quad(scene, {-1, 0, -1}, {1, 0, -1}, {1, 2, -1}, {-1, 2, -1}, white);
+    int left, right;
+    left = blue;
+    right = red;
+    quad(scene, {-1, 0, 1}, {-1, 0, -1}, {-1, 2, -1}, {-1, 2, 1}, left);
+    quad(scene, {1, 0, -1}, {1, 0, 1}, {1, 2, 1}, {1, 2, -1}, right);
+
+    quad(scene, {-0.32f, 1.99f, -0.4f}, {0.32f, 1.99f, -0.4f},
+                {0.32f, 1.99f, 0.2f}, {-0.32f, 1.99f, 0.2f}, light);
     // The bundled OBJ is centered in X/Z, rests at Y=0, and has unit height.
     const auto model = std::filesystem::path(TDSG_ASSET_DIR) / "lucy.obj";
     LoadObj(scene, model, {{-0.48f, 0, -0.32f}, 1.45f, 180}, white);
     LoadObj(scene, model, {{0.42f, 0, 0.15f}, 1.72f, 150}, glass);
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
-        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 4096, 4096)};
+        Vec3f{0, 1, 4}, Vec3f{0, 1, 0}, 39.0f, 1024, 1024)};
 }
 
 SceneSetup MakeWhitted() {
