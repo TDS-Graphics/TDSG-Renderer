@@ -66,7 +66,7 @@ cmake --build build --config Release --parallel
 
 ## 示例场景
 
-- Whitted
+### Whitted
 
 命令：`./tdsg_render --scene whitted --integrator whitted`
 
@@ -74,7 +74,7 @@ cmake --build build --config Release --parallel
   <img src="assets/whitted.png" width="512"/>
 </p>
 
-- Cornell Box
+### Cornell Box
 
 命令：
 
@@ -89,8 +89,7 @@ cmake --build build --config Release --parallel
 | 1spp | 16spp | 128spp |
 
 
-
-- Cornell Glass
+### Cornell Glass
 
 命令：
 
@@ -102,7 +101,7 @@ cmake --build build --config Release --parallel
 |:--:|:--:|
 | Cornell Glass | Cornell with TDS |
 
-- The Veach Test Scene
+### The Veach Test Scene
 
 命令：
 
@@ -116,7 +115,7 @@ cmake --build build --config Release --parallel
 |:--:|:--:|:--:|
 | 光源采样 | BSDF 采样 | 多重重要性采样 |
 
-- Lucy
+### Lucy
 
 命令：
 
@@ -130,14 +129,14 @@ cmake --build build --config Release --parallel
 
 
 
-- 粗糙度测试
+### 粗糙度测试
 
 命令：`./tdsg_render --scene roughness_test --integrator path --spp 512`
 <p align="center">
   <img src="assets/roughness.png" width="1000"/>
 </p>
 
-- 面光测试
+### 面光测试
 
 命令：
 
