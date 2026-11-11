@@ -9,7 +9,7 @@ struct Ray {
         : origin(origin), direction(normalize(direction)),
           t_near(t_near), t_far(t_far), time(time) {}
 
-    Vec3f at(float distance) const { return origin + distance * direction; }
+    TDSG_HD Vec3f at(float distance) const { return origin + distance * direction; }
 
     Vec3f origin{}, direction{};
     float t_near = 1e-4f;
@@ -21,11 +21,17 @@ struct Ray {
     Vec3f direction_x{}, direction_y{};
 };
 
-inline float rayEpsilon(Vec3f p) {
-    return 1e-5f * std::max(1.0f, std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)}));
+TDSG_HD inline float rayEpsilon(Vec3f p) {
+    const float ax = p.x < 0 ? -p.x : p.x;
+    const float ay = p.y < 0 ? -p.y : p.y;
+    const float az = p.z < 0 ? -p.z : p.z;
+    float largest = ax > ay ? ax : ay;
+    largest = largest > az ? largest : az;
+    largest = largest > 1.0f ? largest : 1.0f;
+    return 1e-5f * largest;
 }
 
-inline Vec3f offsetOrigin(Vec3f p, Vec3f n, Vec3f direction) {
+TDSG_HD inline Vec3f offsetOrigin(Vec3f p, Vec3f n, Vec3f direction) {
     float epsilon = rayEpsilon(p);
     if (dot(n, direction) >= 0) {
         return p + n * epsilon;

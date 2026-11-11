@@ -14,6 +14,13 @@ public:
     float pdf(Vec3f, const Hit&) const override { return 0; }
     Color power() const override;
 
+    // Read-only accessors used by the OptiX backend to flatten the scene.
+    Vec3f getPosition() const { return position; }
+    Vec3f getDirection() const { return direction; }
+    Color getIntensity() const { return intensity; }
+    float getCosInner() const { return cos_inner; }
+    float getCosOuter() const { return cos_outer; }
+
 private:
     float falloff(Vec3f from_light) const;
 

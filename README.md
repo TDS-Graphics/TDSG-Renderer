@@ -34,7 +34,7 @@ TDSG Renderer，一个基于物理的渲染器。它面向 TDS 游戏开发社�
 - [ ] denoiser
 - [x] PCG 随机数生成器
 - [x] 多线程
-- [ ] GPU 加速（CUDA 后端）
+- [x] GPU 加速（OptiX 后端，见下文）
 - [x] 光谱渲染
 - [ ] 解析外部场景 
 - [ ] 参与介质（体渲染）
@@ -62,6 +62,34 @@ cmake --build build --config Release --parallel
 ```
 
 首次使用请先运行 `./tdsg_render --help` 浏览一下基本功能。
+
+## OptiX 后端（可选）
+
+默认构建只包含 CPU 后端。GPU 后端需要 CUDA Toolkit 与 OptiX SDK
+（CUDA 13.5 + OptiX 9.1 已验证），并通过 `-DTDSG_OPTIX=ON` 打开：
+
+```powershell
+cmake -S . -B build-optix -G Ninja -DCMAKE_BUILD_TYPE=Release `
+      -DTDSG_OPTIX=ON `
+      -DTDSG_OPTIX_SDK_DIR="G:/MySDK/OptiX/OptiX SDK 9.1.0"
+cmake --build build-optix --parallel
+```
+
+设备端程序由 `nvcc` 直接编译成 PTX（`build-optix/tdsg_optix.ptx`），C++ 部分仍然使用
+原来的编译器，因此 CPU 构建完全不受影响。Windows 上 `nvcc` 需要 `cl.exe`：如果它不在
+`PATH` 里，可通过 `-DTDSG_OPTIX_HOST_COMPILER=<包含 cl.exe 的目录>` 指定。
+
+渲染：
+
+```powershell
+./tdsg_render --scene lucy --integrator mis --spp 64 --backend optix
+```
+
+- `--backend cpu|optix` 切换后端，`--device N` 选择 CUDA 设备（默认 0）。
+- 支持的积分器：`path`、`nee`、`mis`、`normal`（`whitted` 仅 CPU）。
+- 三角形走硬件求交，球体走自定义求交程序；两者各自一个 GAS，再由一层 IAS 组合。
+  着色代码逐行对应 CPU 版本并使用相同的 PCG 随机数流，因此同 `--seed` 下两种后端
+  的结果在统计上一致（互反射/玻璃场景存在正常的蒙特卡洛噪声差异）。
 
 
 ## 示例场景

@@ -11,6 +11,9 @@ public:
     int height() const { return image_height; }
 
     void addSample(int x, int y, const SpectrumRGB& color);
+    // Adds `count` identical samples at once; used by the GPU backend, which
+    // accumulates a whole pixel before copying it back.
+    void addSamples(int x, int y, const SpectrumRGB& color, int count);
     SpectrumRGB pixel(int x, int y) const;
     void Save(const std::filesystem::path& path, float exposure = 0) const;
 

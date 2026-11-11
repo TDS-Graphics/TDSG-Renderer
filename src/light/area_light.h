@@ -13,6 +13,9 @@ public:
     Color power() const override;
     int getPrimitiveID() const override { return primitiveID; }
 
+    // Read-only accessor used by the OptiX backend to flatten the scene.
+    Color getRadiance() const { return radiance; }
+
 private:
     int primitiveID;
     // A value snapshot keeps this light independent of Scene storage and lifetime.

@@ -21,6 +21,13 @@ public:
     int width() const override { return image_width; }
     int height() const override { return image_height; }
 
+    // Read-only accessors used by the OptiX backend to flatten the camera.
+    Vec3f getPosition() const { return position; }
+    Vec3f getForward() const { return forward; }
+    Vec3f getRight() const { return right; }
+    Vec3f getUp() const { return up; }
+    float getTanHalfFov() const { return tan_half_fov; }
+
     Ray generateRay(Vec2 p_film) const override {
         float x = (2 * p_film.x / float(image_width) - 1) * (float(image_width) / float(image_height)) * tan_half_fov;
         float y = (1 - 2 * p_film.y / float(image_height)) * tan_half_fov;

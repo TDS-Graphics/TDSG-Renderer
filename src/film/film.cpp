@@ -23,6 +23,15 @@ void Film::addSample(int x, int y, const SpectrumRGB& color) {
     ++counts[i];
 }
 
+void Film::addSamples(int x, int y, const SpectrumRGB& color, int count) {
+    if (count <= 0) {
+        return;
+    }
+    size_t i = size_t(y) * image_width + x;
+    sums[i] += color * float(count);
+    counts[i] += count;
+}
+
 SpectrumRGB Film::pixel(int x, int y) const {
     size_t i = size_t(y) * image_width + x;
     if (counts[i]) {

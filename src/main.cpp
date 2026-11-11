@@ -41,12 +41,17 @@
 #include "render/render.h"
 #include "scene/obj_loader.h"
 #include "scene/make_scene.h"
+#ifdef TDSG_HAS_OPTIX
+#include "optix/optix_backend.h"
+#endif
 
 int main(int argc, char** argv) {
     // 默认参数
     std::string scene_name = "cornell";
     std::string integrator_name = "normal";
     std::string output = "render.ppm";
+    std::string backend = "cpu";
+    int device = 0;
     float exposure = 0;
     Transform obj_transform;
     std::vector<std::string> obj_paths;
@@ -66,6 +71,8 @@ int main(int argc, char** argv) {
                         << "  --spp N --depth N         Default: 4, 8\n"
                         << "  --threads N --seed N      Default: hardware threads, 1\n"
                         << "  --integrator path|nee|mis|whitted|normal  Default: normal\n"
+                        << "  --backend cpu|optix       Render on the CPU or with OptiX  Default: cpu\n"
+                        << "  --device N                CUDA device for --backend optix  Default: 0\n"
                         << "  --output image.ppm|.pfm   Default: render.ppm\n"
                         << "  --exposure EV             PPM exposure in stops\n"
                         << "  --obj model.obj           Add an OBJ, with MTL constants\n"
@@ -99,6 +106,10 @@ int main(int argc, char** argv) {
             obj_transform.translation.z = std::strtof(getValue(), nullptr);
         } else if (arg == "--integrator") {
             integrator_name = getValue();
+        } else if (arg == "--backend") {
+            backend = getValue();
+        } else if (arg == "--device") {
+            device = std::atoi(getValue());
         }
     }
 
@@ -132,7 +143,26 @@ int main(int argc, char** argv) {
     // Render, START!!!!!        
     auto start = std::chrono::steady_clock::now();
 
-    Render(setup->scene, *setup->camera, film, *integrator, settings);
+    if (backend == "optix") {
+#ifdef TDSG_HAS_OPTIX
+        std::string error;
+        const bool rendered = RenderOptix(setup->scene, *setup->camera, film, integrator_name,
+                                          settings, device, error);
+        if (!rendered) {
+            std::cout << "OptiX backend failed: " << error << '\n';
+            return -1;
+        }
+#else
+        std::cout << "This build has no OptiX backend (configure with -DTDSG_OPTIX=ON)\n";
+        return -1;
+#endif
+    } else if (backend == "cpu") {
+        Render(setup->scene, *setup->camera, film, *integrator, settings);
+    } else {
+        std::cout << "Unknown backend: " << backend << " (use cpu or optix)\n";
+        return -1;
+    }
+
     film.Save(output, exposure);
 
     auto end = std::chrono::steady_clock::now();
