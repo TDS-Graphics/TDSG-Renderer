@@ -76,48 +76,59 @@ cmake --build build --config Release --parallel
 
 - Cornell Box
 
-命令：`./tdsg_render --scene cornell --integrator nee --spp 16`
-<p align="center">
-  <img src="assets/cornell.png" width="512"/>
-</p>
+命令：
+
+`./tdsg_render --scene cornell --integrator path --spp 1`（ 1 ray/pixel ）
+
+`./tdsg_render --scene cornell --integrator path --spp 16`（ 16 rays/pixel ）
+
+`./tdsg_render --scene cornell --integrator path --spp 128`（ 128 rays/pixel ）
+
+| ![](assets/path_1.jpg) | ![](assets/path_16.jpg) | ![](assets/path_128.jpg) |
+|:--:|:--:|:--:|
+| 1spp | 16spp | 128spp |
 
 
-- Cornell Box + 玻璃球
 
-命令：`./tdsg_render --scene cornell_glass --integrator path --spp 2048 --depth 16`
-<p align="center">
-  <img src="assets/cornell-glass-sphere.png" width="512"/>
-</p>
+- Cornell Glass
 
+命令：
 
-- Cornell with TDS
+`./tdsg_render --scene cornell_glass --integrator path --spp 2048 --depth 16`（Cornell Glass）
 
-命令：`./tdsg_render --scene cornell_glass --integrator path --spp 1024 --depth 8 --obj ../../assets/tdsg.obj --obj-scale 0.7 --obj-rotate-y 25 --obj-translate -0.34 0.64 0.5`
-<p align="center">
-  <img src="assets/tdscornell.png" width="512"/>
-</p>
+`./tdsg_render --scene cornell_glass --integrator path --spp 1024 --depth 8 --obj ../../assets/tdsg.obj --obj-scale 0.7 --obj-rotate-y 25 --obj-translate -0.34 0.64 0.5`（Cornell with TDS）
 
-- Lucy
-
-命令：`./tdsg_render --scene lucy --integrator mis --spp 400`
-<p align="center">
-  <img src="assets/lucy.png" width="512"/>
-</p>
-
-- Holy TDS
-
-命令：`./tdsg_render --scene tds --integrator mis --spp 2048 --depth 32`
-<p align="center">
-  <img src="assets/tds.jpg" width="512"/>
-</p>
-
+| ![](assets/cornell-glass-sphere.png) | ![](assets/tdscornell.png) |
+|:--:|:--:|
+| Cornell Glass | Cornell with TDS |
 
 - The Veach Test Scene
 
-命令：`./tdsg_render --scene veach --integrator mis --spp 16`
-<p align="center">
-  <img src="assets/veach.png" width="800"/>
-</p>
+命令：
+
+`./tdsg_render --scene veach --integrator nee --spp 1`（Light sampling）
+
+`./tdsg_render --scene veach --integrator path --spp 1`（BSDF sampling）
+
+`./tdsg_render --scene veach --integrator mis --spp 1`（MIS）
+
+| ![](assets/veach_light.jpg) | ![](assets/veach_bsdf.jpg) | ![](assets/veach_mis.jpg) |
+|:--:|:--:|:--:|
+| 光源采样 | BSDF 采样 | 多重重要性采样 |
+
+- Lucy
+
+命令：
+
+`./tdsg_render --scene lucy --integrator mis --spp 400`（Lucy）
+
+`./tdsg_render --scene tds --integrator mis --spp 2048 --depth 32`（Holy TDS）
+
+| ![](assets/lucy.png) | ![](assets/tds.jpg) |
+|:--:|:--:|
+| Lucy | Holy TDS |
+
+
 
 - 粗糙度测试
 
@@ -126,11 +137,17 @@ cmake --build build --config Release --parallel
   <img src="assets/roughness.png" width="1000"/>
 </p>
 
-- 面光测试（方便对比 BSDF sampling 和 light sampling）
+- 面光测试
 
-命令：`./tdsg_render --scene area_light --integrator nee --spp 4`
-<p align="center">
-  <img src="assets/area.png" width="800"/>
-</p>
+命令：
+
+`./tdsg_render --scene area_light --integrator path --spp 1`（Naive PT）
+
+`./tdsg_render --scene area_light --integrator nee --spp 1`（+NEE）
+
+| ![](assets/area_path.jpg) | ![](assets/area_nee.jpg) |
+|:--:|:--:|
+| 暴力路径追踪 | 路径追踪 + NEE |
+
 
 这几个示例场景都是硬编码的，构建器位于 `src/scene/make_scene.cpp`，可能日后考虑加入 JSON / xml 解析外部场景描述文件。

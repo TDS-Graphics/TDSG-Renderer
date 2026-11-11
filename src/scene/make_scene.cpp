@@ -134,7 +134,7 @@ SceneSetup MakeAreaLight() {
     box(scene, {0.3f, 1.9f, 0.3f}, {{0, 0, -0.25f}, 1, -12}, occluder);
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
-        Vec3f{5, 3.2f, 6}, Vec3f{0, 0.65f, 0}, 29.0f, 800, 450)};
+        Vec3f{5, 3.2f, 6}, Vec3f{0, 0.65f, 0}, 29.0f, 1600, 900)};
 }
 
 SceneSetup MakeLucy() {
@@ -231,7 +231,7 @@ SceneSetup MakeVeach() {
     }
 
     return {std::move(scene), std::make_unique<PinholeCamera>(
-        eye, Vec3f{0, 0.7f, 0}, 38.0f, 800, 600)};
+        eye, Vec3f{0, 0.7f, 0}, 38.0f, 1600, 1200)};
 }
 
 SceneSetup MakeTDS() {
